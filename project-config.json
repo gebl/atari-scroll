@@ -1,0 +1,16 @@
+{
+    "name": "atari-scroll",
+    "description": "Project atari-scroll",
+    "toolkit": "llvm",
+    "sources": [
+        "main.c",
+        "scrl.asm"
+    ],
+    "build": "debug",
+    "definitions": [],
+    "includes": [
+        "."
+    ],
+    "args": [],
+    "compiler": ""
+}
