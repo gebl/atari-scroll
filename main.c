@@ -11,24 +11,18 @@
 
 void updateDL() {
     int dl = 0;
-    POKE(DLIST + dl++, DL_BLK8);  // 8 blank scan lines
-    POKE(DLIST + dl++, DL_BLK8);
-    POKE(DLIST + dl++, DL_BLK8);
+    dlist[dl++] = DL_BLK8;
+    dlist[dl++] = DL_BLK8;
+    dlist[dl++] = DL_BLK8;
     for (int i = 0; i < 23; i++) {
-        POKE(DLIST + dl++, DL_HSCROL(DL_LMS(DL_GRAPHICS0)));
-        POKE(DLIST + dl++, ((unsigned int)map + i * MAPCOLS) & 0xff);
-        POKE(DLIST + dl++, ((unsigned int)map + i * MAPCOLS) >> 8 & 0xff);
-        mapstrt[i * 2] = ((unsigned int)map + i * MAPCOLS) & 0xff;
-        mapstrt[i * 2 + 1] = ((unsigned int)map + i * MAPCOLS) >> 8 & 0xff;
+        dlist[dl++] = DL_HSCROL(DL_LMS(DL_GRAPHICS0));
+        mapstrt[i * 2]=dlist[dl++] = ((unsigned int)map + i * MAPCOLS) & 0xff;
+        mapstrt[i * 2 + 1]=dlist[dl++] = mapstrt[i * 2 + 1]=((unsigned int)map + i * MAPCOLS) >> 8 & 0xff;
     }
-
-    POKE(DLIST + dl++, DL_JVB);
-
-    POKE(DLIST + dl++, ((unsigned int)DLIST) & 0xff);
-    POKE(DLIST + dl++, ((unsigned int)DLIST >> 8) & 0xff);
-
-    POKE(SDLIST, ((unsigned int)DLIST) & 0xff);
-    POKE(SDLIST + 1, ((unsigned int)DLIST >> 8) & 0xff);
+    dlist[dl++] = DL_JVB;
+    dlist[dl++] = ((unsigned int)dlist) & 0xff;
+    dlist[dl++] = ((unsigned int)dlist >> 8) & 0xff;
+    OS.sdlst = dlist;
 }
 
 void initPat() {
@@ -40,72 +34,45 @@ void initPat() {
 }
 
 int game() {
-    unsigned int frame;
-    unsigned int score, score2;
-    int yv = 0;
-    unsigned char key, lastjump, lives;
-    unsigned int y;
+    unsigned int score;
     score = 0;
-    score2 = 0;
-    lives = 3;
-    lastjump = 0;
-    key = 0;
 
     initPat();
-    // POKE(CHRPTR, (unsigned char)((unsigned int)CHARSET / 256 & 0xff));
-    OS.chbas = (unsigned char)((unsigned int)CHARSET / 256 & 0xff);
-    updateDL();
 
-    // POKE(SDMACTL, 46);  // Enable DMA for players and missiles
+    OS.chbas = (unsigned char)((unsigned int)CHARSET / 256 & 0xff);
+
     OS.sdmctl = 46;
-    // POKE(OS.pcolr0, COLOR_GREEN);    // Player Color.
+    OS.sdmctl = DMACTL_PLAYFIELD_NORMAL | DMACTL_DMA_MISSILES | DMACTL_DMA_PLAYERS | DMACTL_DMA_FETCH;
+  
     OS.pcolr0 = COLOR_GREEN;
     OS.pcolr1 = COLOR_RED;
     OS.pcolr2 = COLOR_BLUE;
     OS.pcolr3 = COLOR_YELLOW;
-    // POKE(OS.pcolr1, COLOR_RED);    // Player Color.
 
-    // unsigned int i = PEEK(RAMTOP) - 8;
     unsigned int i = OS.ramtop - 8;
     ANTIC.pmbase = i;
-    // POKE(PMBASE, i);
+    struct __double_pmgmem pmgmem = (*(struct __double_pmgmem *)((unsigned int)(ANTIC.pmbase) * 256));
+
+    
+    OS.ramtop = i-1;
 
     GTIA_WRITE.prior = PRIOR_P03_PF03;
-    // POKE(GRACTL,GRACTL_PLAYERS);
     GTIA_WRITE.gractl = GRACTL_PLAYERS;
 
-    // POKE(SIZE0, PMG_SIZE_DOUBLE );
     GTIA_WRITE.sizep0 = PMG_SIZE_DOUBLE;
     GTIA_WRITE.sizep1 = PMG_SIZE_NORMAL;
     GTIA_WRITE.sizep2 = PMG_SIZE_NORMAL;
     GTIA_WRITE.sizep3 = PMG_SIZE_NORMAL;
-    
 
-    // POKE(BITS0, 218);
-    unsigned int mypmbase = i * 256;
 
-    volatile struct __double_pmgmem pmgmem = (*(
-        volatile struct __double_pmgmem *)((unsigned int)(ANTIC.pmbase) * 256));
-
-    // POKE(HPOS0, 115);   // Horizontal Position
     GTIA_WRITE.hposp0 = 115;
     GTIA_WRITE.hposp1 = 160;
     GTIA_WRITE.hposp2 = 150;
     GTIA_WRITE.hposp3 = 140;
+
+    y = 34;
     
-
-    y = 45;
-
-    //    for (int j=0; j<20; j++) {
-    //        POKE(mypmbase+512+j+y, dino1[j]);
-    //    }
-    //    for (int j=0; j<8; j++) {
-    //        POKE(mypmbase+640+j+y+12, barrel1[j]);
-    //    }
-
-    frame = 0;
-
-    scrl();
+    updateDL();
 
     for (int j = 0; j < 128; j++) {
         pmgmem.missiles[j] = 0x00;
@@ -116,22 +83,33 @@ int game() {
     }
 
     for (int j = 0; j < 8; j++) {
-        pmgmem.player1[j + 57] = barrel1[j];
+        pmgmem.player1[j + 46] = barrel1[j];
     }
 
     for (int j = 0; j < 8; j++) {
-        pmgmem.player2[j + 57] = barrel1[j];
+        pmgmem.player2[j + 46] = barrel1[j];
     }
 
     for (int j = 0; j < 8; j++) {
-        pmgmem.player3[j + 57] = barrel1[j];
+        pmgmem.player3[j + 46] = barrel1[j];
     }
+
+    dinoptr = pmgmem.player0+y;
+
+    scrl();
     while (1) {
         score++;
-
+        oy = y;
+        for (int j = y; j < oy; j++) {
+            pmgmem.player0[j] = 0;
+        }
         for (int j = 0; j < 20; j++) {
             pmgmem.player0[j + y] = dino1[j];
         }
+        for (int j = oy; j < y; j++) {
+            pmgmem.player0[j] = 0;
+        }
+        
     }
     return score;
 }

@@ -17,7 +17,7 @@ scrlit:
     dex
     stx HSCROL
     stx scrlh
-    bpl scrli3
+    bpl out
     ldx #7
     stx scrlh
     stx HSCROL  
@@ -25,15 +25,15 @@ scrlit:
     ldy scrlc
     iny
     sty scrlc
-    cpy #22
+    cpy #50
     bcc loop2
     stx scrlc
     ldy #0
 resloop:
     lda mapstrt,Y
-    sta $0600+4,X
+    sta dlist+4,X
     lda mapstrt+1,Y
-    sta $0600+5,X
+    sta dlist+5,X
     iny
     iny
     inx
@@ -41,22 +41,22 @@ resloop:
     inx
     cpx #69
     bcc resloop
-    jmp scrli3
+    jmp out
     ldx #0
 loop2:
-    lda 0x0600+4,X
+    lda dlist+4,X
     clc
     adc #2
-    sta $0600+4,X
-    lda $0600+5,X
+    sta dlist+4,X
+    lda dlist+5,X
     adc #0
-    sta $0600+5,X
+    sta dlist+5,X
     inx
     inx
     inx
     cpx #69
     bcc loop2
-scrli3:
+out:
     pla
     tax
     pla
