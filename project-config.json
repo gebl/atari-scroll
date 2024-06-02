@@ -1,7 +1,7 @@
 {
     "name": "atari-scroll",
     "description": "Project atari-scroll",
-    "toolkit": "llvm",
+    "toolkit": "cc65",
     "sources": [
         "main.c",
         "scrl.asm"
@@ -13,5 +13,7 @@
     ],
     "args": [],
     "compiler": "",
-    "machine": "atari8-dos"
-}
+    "machine": "atari",
+    "main": "main.c",
+    "output": "atari-scroll.xex",
+    "debugger": "atari800"}

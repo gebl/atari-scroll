@@ -1,3 +1,6 @@
 Running in emulator:
 
 C:\users\gabe.ropnop\Downloads\atari800-5.2.0-win32-sdl\atari800-5.2.0-win32-sdl\atari800.exe -xl -win-width 1024 -win-height 768 .\atari-scroll.prg
+
+
+c:/Users/gabe.ropnop/OneDrive/Desktop/atari-scroll/build/atari-scroll.prg c:/Users/gabe.ropnop/OneDrive/Desktop/atari-scroll/build/atari-scroll.dbg C:\Users\gabe.ropnop\Downloads\cc65-snapshot-win32\bin\ld65.exe -o c:\Users\gabe.ropnop\OneDrive\Desktop\atari-scroll\build\atari-scroll.prg --dbgfile "c:\Users\gabe.ropnop\OneDrive\Desktop\atari-scroll\build\atari-scroll.dbg" -t atari c:\Users\gabe.ropnop\OneDrive\Desktop\atari-scroll\build\scrl.o c:\Users\gabe.ropnop\OneDrive\Desktop\atari-scroll\build\main.o 

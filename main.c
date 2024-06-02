@@ -8,14 +8,15 @@
 #include "game.h"
 #include "pmbase.h"
 #include "scrl.h"
-
+ 
 void updateDL() {
+    int i;
     int dl = 0;
 
     dlist[dl++] = DL_BLK8;
     dlist[dl++] = DL_BLK8;
     dlist[dl++] = DL_BLK8;
-    for (int i = 0; i < 23; i++) {
+    for (i = 0; i < 23; i++) {
         dlist[dl++] = DL_HSCROL(DL_LMS(DL_CHR40x8x1));
         mapstrt[i * 2] = dlist[dl++] = ((unsigned int)map + i * MAPCOLS) & 0xff;
         mapstrt[i * 2 + 1] = dlist[dl++] = mapstrt[i * 2 + 1] =
@@ -36,16 +37,16 @@ void initPat() {
 }
 
 int game() {
-    unsigned int score, x1, x2, x3;
+    int score, x1, x2, x3;
     unsigned char key, lastjump, lives;
+    int yv = 0;
+    unsigned int  i,j;
+    static struct __double_pmgmem *pmgmem;
+
     lives = 3;
     lastjump = 0;
     score = 0;
-    int yv = 0;
 
-    initPat();
-
-    OS.chbas = (unsigned char)((unsigned int)CHARSET / 256 & 0xff);
 
     OS.sdmctl = 46;
     OS.sdmctl = DMACTL_PLAYFIELD_NORMAL | DMACTL_DMA_MISSILES |
@@ -56,12 +57,20 @@ int game() {
     OS.pcolr2 = COLOR_BLUE;
     OS.pcolr3 = COLOR_YELLOW;
 
-    unsigned int i = OS.ramtop - 8;
-    ANTIC.pmbase = i;
-    pmgmem =
-        (*(struct __double_pmgmem *)((unsigned int)(ANTIC.pmbase) * 256));
+    i = OS.ramtop - 8;
+    printf("OS.ramtop: %x\n", OS.ramtop);
+    printf("&ANTIC.pmbase: %x\n", &ANTIC.pmbase);
+    printf("i: %x\n", i);
+    printf("i*256: %x\n", i * 256);
+    
+    pmgmem = (struct __double_pmgmem* )(0xb800);
 
+    ANTIC.pmbase = 0xb8;
+    printf("pmgmem: %x\n", &pmgmem);
     OS.ramtop = i - 1;
+    while (OS.ch == 0xff) {
+    }
+    OS.ch = 0xff;
 
     GTIA_WRITE.prior = PRIOR_P03_PF03;
     GTIA_WRITE.gractl = GRACTL_PLAYERS;
@@ -74,33 +83,35 @@ int game() {
     GTIA_WRITE.hposp0 = 115;
     GTIA_WRITE.hposp1 = x1 = 160;
     GTIA_WRITE.hposp2 = x2 = 150;
-    GTIA_WRITE.hposp3 = x3 = 140;
+    GTIA_WRITE.hposp3 = x3 = 140; 
 
     y = GROUND;
+    OS.chbas = (unsigned char)((unsigned int)CHARSET / 256 & 0xff);
 
+    initPat();
     updateDL();
 
-    for (int j = 0; j < 128; j++) {
-        pmgmem.missiles[j] = 0x00;
-        pmgmem.player0[j] = 0x00;
-        pmgmem.player1[j] = 0x00;
-        pmgmem.player2[j] = 0x00;
-        pmgmem.player3[j] = 0x00;
+    for (j = 0; j < 128; j++) {
+        pmgmem->missiles[j] = 0x00;
+        pmgmem->player0[j] = 0x00;
+        pmgmem->player1[j] = 0x00;
+        pmgmem->player2[j] = 0x00;
+        pmgmem->player3[j] = 0x00;
     }
 
-    for (int j = 0; j < 8; j++) {
-        pmgmem.player1[j + 46] = barrel1[j];
+    for (j = 0; j < 8; j++) {
+        pmgmem->player1[j + 46] = barrel1[j];
     }
 
-    for (int j = 0; j < 8; j++) {
-        pmgmem.player2[j + 46] = barrel1[j];
+    for ( j = 0; j < 8; j++) {
+        pmgmem->player2[j + 46] = barrel1[j];
     }
 
-    for (int j = 0; j < 8; j++) {
-        pmgmem.player3[j + 46] = barrel1[j];
+    for ( j = 0; j < 8; j++) {
+        pmgmem->player3[j + 46] = barrel1[j];
     }
 
-    dinoptr = pmgmem.player0 + y;
+    dinoptr = pmgmem->player0 + y;
     yv=-35;
     scrl();
     while (1) {
@@ -130,13 +141,13 @@ int game() {
         y+=yv/10;
 
         if (oy != y) {
-            for (int j = oy; j < oy + 20; j++) {
-                pmgmem.player0[j] = 0x00;
+            for ( j = oy; j < oy + 20; j++) {
+                pmgmem->player0[j] = 0x00;
             }
             oy = y;
 
-            for (int j = 0; j < 20; j++) {
-                pmgmem.player0[j + y] = dino1[j];
+            for ( j = 0; j < 20; j++) {
+                pmgmem->player0[j + y] = dino1[j];
             }
         }
 
@@ -183,6 +194,7 @@ int main() {
     printf("Hello, world!\n");
     while (OS.ch == 0xff) {
     }
+    OS.ch=0xff;
     printf("Starting game...\n");
 
     printf("Score: %d\n", game());

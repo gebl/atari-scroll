@@ -1,10 +1,15 @@
 .include "atari.inc"
-
 ; Entry point for C function
-.global scrl
-scrl:
+.global _scrl
+
+.import _dlist
+.import _mapstrt
+.import _scrlc
+.import _scrlh
+
+_scrl:
     lda #7; deferref vbank routine
-    sta scrlh; handy to initialize scrlh also :-)
+    sta _scrlh; handy to initialize scrlh also :-)
     ldx #>scrli ; arguments for address of VBI
     ldy #<scrli
     jmp SETVBV ; OS register VBlank
@@ -13,27 +18,27 @@ scrli:
     txa
     pha
 scrlit:
-    ldx scrlh
+    ldx _scrlh
     dex
     stx HSCROL
-    stx scrlh
+    stx _scrlh
     bpl out
     ldx #7
-    stx scrlh
+    stx _scrlh
     stx HSCROL  
     ldx #0
-    ldy scrlc
+    ldy _scrlc
     iny
-    sty scrlc
+    sty _scrlc
     cpy #50
     bcc loop2
-    stx scrlc
+    stx _scrlc
     ldy #0
 resloop:
-    lda mapstrt,Y
-    sta dlist+4,X
-    lda mapstrt+1,Y
-    sta dlist+5,X
+    lda _mapstrt,Y
+    sta _dlist+4,X
+    lda _mapstrt+1,Y
+    sta _dlist+5,X
     iny
     iny
     inx
@@ -44,13 +49,13 @@ resloop:
     jmp out
     ldx #0
 loop2:
-    lda dlist+4,X
+    lda _dlist+4,X
     clc
     adc #2
-    sta dlist+4,X
-    lda dlist+5,X
+    sta _dlist+4,X
+    lda _dlist+5,X
     adc #0
-    sta dlist+5,X
+    sta _dlist+5,X
     inx
     inx
     inx
