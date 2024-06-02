@@ -3,9 +3,8 @@
 
 
 #define CHARSET (unsigned char *)0x8000
-//#define DLIST   (unsigned char *)0x0600
-//#define SDLIST  (unsigned char *)0x0230
-//#define CHRPTR 756
+#define GROUND 33
+
 
 //https://www.atariarchives.org/creativeatari/PlayerMissile_Graphics.php
 

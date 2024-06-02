@@ -1,0 +1,3 @@
+Running in emulator:
+
+C:\users\gabe.ropnop\Downloads\atari800-5.2.0-win32-sdl\atari800-5.2.0-win32-sdl\atari800.exe -xl -win-width 1024 -win-height 768 .\atari-scroll.prg

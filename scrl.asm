@@ -3,11 +3,11 @@
 ; Entry point for C function
 .global scrl
 scrl:
-    lda #7
-    sta scrlh
-    ldx #>scrli
+    lda #7; deferref vbank routine
+    sta scrlh; handy to initialize scrlh also :-)
+    ldx #>scrli ; arguments for address of VBI
     ldy #<scrli
-    jmp SETVBV
+    jmp SETVBV ; OS register VBlank
 scrli:
     pha
     txa

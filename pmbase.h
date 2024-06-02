@@ -10,4 +10,6 @@ struct __double_pmgmem {
     unsigned char player3[128];
 };
 
+static struct __double_pmgmem pmgmem;
+
 #endif
