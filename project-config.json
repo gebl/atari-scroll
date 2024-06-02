@@ -12,5 +12,6 @@
         "."
     ],
     "args": [],
-    "compiler": ""
+    "compiler": "",
+    "machine": "atari8-dos"
 }
