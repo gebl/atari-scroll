@@ -25,7 +25,7 @@ void updateDL() {
     dlist[dl++] = DL_JVB;
     dlist[dl++] = ((unsigned int)dlist) & 0xff;
     dlist[dl++] = ((unsigned int)dlist >> 8) & 0xff;
-    OS.sdlst = dlist; 
+    OS.sdlst = dlist;
 }
 
 void initPat() {
@@ -36,12 +36,34 @@ void initPat() {
     }
 }
 
+void initPM(struct __double_pmgmem *pm) {
+    int j;
+    for (j = 0; j < 128; j++) {
+        pm->missiles[j] = 0x00;
+        pm->player0[j] = 0x00;
+        pm->player1[j] = 0x00;
+        pm->player2[j] = 0x00;
+        pm->player3[j] = 0x00;
+    }
+
+    for (j = 0; j < 8; j++) {
+        pm->player1[j + GROUND + 12] = barrel1[j];
+    }
+
+    for (j = 0; j < 8; j++) {
+        pm->player2[j + GROUND + 12] = barrel1[j];
+    }
+
+    for (j = 0; j < 8; j++) {
+        pm->player3[j + GROUND + 12] = barrel1[j];
+    }
+}
+
 int game() {
     int score, x1, x2, x3;
     unsigned char lastjump, lives;
     int yv = 0;
     unsigned int j;
-    static struct __double_pmgmem *pmgmem;
 
     lives = 3;
     lastjump = 0;
@@ -56,52 +78,48 @@ int game() {
     OS.pcolr2 = COLOR_BLUE;
     OS.pcolr3 = COLOR_YELLOW;
 
-    curpm =&pmgmembuf;
-    backpm = &pmgmembuf;
- 
-    printf("pmbase: %x\n", (curpm));
-    printf("high pmbase: %x\n", (((unsigned int)curpm) >> 8) & 0xff);
-    
-    ANTIC.pmbase =  (unsigned char)((((unsigned int)curpm) >> 8) & 0xff);
-    pmgmem=(struct __double_pmgmem *)curpm;
+    curpm = (unsigned char *)&pmgmembuf;
+    backpm = (unsigned char *)&pmgmembuf2;
 
-    printf("pmgmem: %x\n", pmgmem);    
-    while(OS.ch == 0xff) {
+    printf("pmbase: %x\n", (curpm));
+    printf("pmbase2: %x\n", (backpm));
+
+    printf("Chargent start: %x\n", _CHARGEN_START__);
+    printf("Main start: %x\n", _MAIN_START__);
+    printf("CHARSET: %x\n", CHARSET);
+    printf("----------\n");
+    printf("high pmbase: %x\n", (((unsigned int)curpm) >> 8) & 0xff);
+    printf("sizeof pmgmem: %x\n", sizeof(struct __double_pmgmem));
+    printf("pmbase+sizeof pmgmem: %x\n",
+           (unsigned char *)curpm + sizeof(struct __double_pmgmem));
+
+    ANTIC.pmbase = (unsigned char)((((unsigned int)curpm) >> 8) & 0xff);
+    pmgmem = (struct __double_pmgmem *)curpm;
+    pmgmem2 = (struct __double_pmgmem *)backpm;
+
+    printf("pmgmem: %x\n", pmgmem);
+    printf("pmgmem2: %x\n", pmgmem2);
+    printf("pmgmem->player0: %x\n", pmgmem->player0);
+    printf("pmgmem2->player0: %x\n", pmgmem2->player0);
+
+    while (OS.ch == 0xff) {
     }
     OS.ch = 0xff;
 
-    oy=y = GROUND;
+    oy = y = GROUND;
     OS.chbas = (unsigned char)((unsigned int)CHARSET / 256 & 0xff);
 
+    initPM(pmgmem);
+    initPM(pmgmem2);
     initPat();
-
-    for (j = 0; j < 128; j++) {
-        pmgmem->missiles[j] = 0x00;
-        pmgmem->player0[j] = 0x00;
-        pmgmem->player1[j] = 0x00;
-        pmgmem->player2[j] = 0x00;
-        pmgmem->player3[j] = 0x00;
-    }
-
-    for (j = 0; j < 8; j++) {
-        pmgmem->player1[j + GROUND+12] = barrel1[j];
-    }
-
-    for (j = 0; j < 8; j++) {
-        pmgmem->player2[j + GROUND+12] = barrel1[j];
-    }
-
-    for (j = 0; j < 8; j++) {
-        pmgmem->player3[j + GROUND+12] = barrel1[j];
-    }
 
     dinoptr = pmgmem->player0 + y;
     yv = -35;
 
     updateDL();
     scrl();
-    
-    //OS.gprior = PRIOR_P03_PF03|PRIOR_GFX_MODE_11;
+
+    // OS.gprior = PRIOR_P03_PF03|PRIOR_GFX_MODE_11;
     OS.gprior = PRIOR_P03_PF03;
     GTIA_WRITE.gractl = GRACTL_PLAYERS;
 
@@ -115,15 +133,20 @@ int game() {
     GTIA_WRITE.hposp2 = x2 = 150;
     GTIA_WRITE.hposp3 = x3 = 140;
 
-      
-    
-
     for (j = oy; j < oy + 20; j++) {
         pmgmem->player0[j] = 0x00;
     }
     for (j = 0; j < 20; j++) {
         pmgmem->player0[j + y] = dino1[j];
     }
+
+    for (j = oy; j < oy + 20; j++) {
+        pmgmem2->player0[j] = 0x00;
+    }
+    for (j = 0; j < 20; j++) {
+        pmgmem2->player0[j + y - 30] = dino1[j];
+    }
+
     while (1) {
         oy = y;
 
@@ -163,6 +186,12 @@ int game() {
         if (x3 < 0) {
             x3 = 160;
         }
+
+        temppm=curpm;
+        curpm=backpm;
+        backpm=temppm;
+        ANTIC.pmbase = (unsigned char)((((unsigned int)curpm) >> 8) & 0xff);
+
         /*
         GTIA_WRITE.hposp1 = x1;
         GTIA_WRITE.hposp2 = x2;

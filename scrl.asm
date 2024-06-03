@@ -49,6 +49,8 @@ resloop:
     jmp out
     ldx #0
 loop2:
+    ldx #30 ; skip scrolling the top of the screen.
+loop2b:
     lda _dlist+4,X
     clc
     adc #2
@@ -60,7 +62,7 @@ loop2:
     inx
     inx
     cpx #69
-    bcc loop2
+    bcc loop2b
 out:
     pla
     tax

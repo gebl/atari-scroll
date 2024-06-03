@@ -12,7 +12,7 @@
             "name": "PowerShell Launch Script - altirra64",
             "type": "PowerShell",
             "request": "launch",
-            "script": "C:\\Users\\gabe.ropnop\\Downloads\\Altirra-4.21\\Altirra64.exe .\\build\\atari-scroll.prg",
+            "script": "C:\\Users\\gabe.ropnop\\Downloads\\Altirra-4.21\\Altirra64.exe /debug /debugbrkrun .\\build\\atari-scroll.prg",
             "cwd": "${cwd}"
         }
     ]
