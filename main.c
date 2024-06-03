@@ -38,9 +38,9 @@ void initPat() {
 
 int game() {
     int score, x1, x2, x3;
-    unsigned char key, lastjump, lives;
+    unsigned char lastjump, lives;
     int yv = 0;
-    unsigned int i, j;
+    unsigned int j;
     static struct __double_pmgmem *pmgmem;
 
     lives = 3;
@@ -56,27 +56,19 @@ int game() {
     OS.pcolr2 = COLOR_BLUE;
     OS.pcolr3 = COLOR_YELLOW;
 
-    i = OS.ramtop - 8;
-
-/*    curpm =&pmgmembuf;
+    curpm =&pmgmembuf;
     backpm = &pmgmembuf;
-*/
-    printf("pmbase: %x\n", (&pmgmembuf));
-    printf("high pmbase: %x\n", (((unsigned int)&pmgmembuf) >> 8) & 0xff);
+ 
+    printf("pmbase: %x\n", (curpm));
+    printf("high pmbase: %x\n", (((unsigned int)curpm) >> 8) & 0xff);
     
-    ANTIC.pmbase =  (unsigned char)((((unsigned int)&pmgmembuf) >> 8) & 0xff);
-    pmgmem=(struct __double_pmgmem *)&pmgmembuf;
-
-    //ANTIC.pmbase =  0x80;
-    //pmgmem=(struct __double_pmgmem *)0x8000;
-
+    ANTIC.pmbase =  (unsigned char)((((unsigned int)curpm) >> 8) & 0xff);
+    pmgmem=(struct __double_pmgmem *)curpm;
 
     printf("pmgmem: %x\n", pmgmem);    
     while(OS.ch == 0xff) {
     }
     OS.ch = 0xff;
-
-
 
     oy=y = GROUND;
     OS.chbas = (unsigned char)((unsigned int)CHARSET / 256 & 0xff);
@@ -123,6 +115,9 @@ int game() {
     GTIA_WRITE.hposp2 = x2 = 150;
     GTIA_WRITE.hposp3 = x3 = 140;
 
+      
+    
+
     for (j = oy; j < oy + 20; j++) {
         pmgmem->player0[j] = 0x00;
     }
@@ -130,8 +125,6 @@ int game() {
         pmgmem->player0[j + y] = dino1[j];
     }
     while (1) {
-
-        
         oy = y;
 
         if (OS.ch == 0x21) {

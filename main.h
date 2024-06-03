@@ -12,7 +12,6 @@ extern unsigned int _MAIN_START__;
 //https://www.atariarchives.org/creativeatari/PlayerMissile_Graphics.php
 
 
-static unsigned char *backbuffer;
 unsigned char *src;
 unsigned char *dst;
 
@@ -32,4 +31,7 @@ unsigned char *curpm, *backpm, *temppm;
 unsigned char pmgmembuf[0x1600];
 #pragma bss-name (pop)
 
+#pragma bss-name (push, "PM2")
+unsigned char pmgmembuf2[0x1600];
+#pragma bss-name (pop)
 #endif
