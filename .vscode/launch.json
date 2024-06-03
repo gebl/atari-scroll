@@ -2,10 +2,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "PowerShell Launch Script",
+            "name": "PowerShell Launch Script - atari",
             "type": "PowerShell",
             "request": "launch",
             "script": "C:\\users\\gabe.ropnop\\Downloads\\atari800-5.2.0-win32-sdl\\atari800-5.2.0-win32-sdl\\atari800.exe -xl -win-width 1024 -win-height 768 .\\build\\atari-scroll.prg",
+            "cwd": "${cwd}"
+        },
+        {
+            "name": "PowerShell Launch Script - altirra64",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "C:\\Users\\gabe.ropnop\\Downloads\\Altirra-4.21\\Altirra64.exe .\\build\\atari-scroll.prg",
             "cwd": "${cwd}"
         }
     ]

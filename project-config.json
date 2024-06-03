@@ -13,7 +13,11 @@
     ],
     "args": [],
     "compiler": "",
-    "machine": "atari",
+    "machine": "atarixl",
     "main": "main.c",
     "output": "atari-scroll.xex",
-    "debugger": "atari800"}
+    "debugger": "atari800",
+    "linkerFlags": [
+        "--config", "C:\\Users\\gabe.ropnop\\OneDrive\\Desktop\\atari-scroll\\atarixl-mod.cfg"
+    ]
+}
