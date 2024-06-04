@@ -8,6 +8,7 @@
 #include "game.h"
 #include "pmbase.h"
 #include "scrl.h"
+#include "asmsprite.h"
 
 void updateDL() {
     int i;
@@ -64,6 +65,7 @@ int game() {
     unsigned char lastjump, lives;
     int yv = 0;
     unsigned int j;
+    void *sprite,*sprite2;
 
     lives = 3;
     lastjump = 0;
@@ -133,11 +135,8 @@ int game() {
     GTIA_WRITE.hposp2 = x2 = 150;
     GTIA_WRITE.hposp3 = x3 = 140;
 
-    for (j = oy; j < oy + 20; j++) {
-        pmgmem->player0[j] = 0x00;
-    }
     for (j = 0; j < 20; j++) {
-        pmgmem->player0[j + y] = dino1[j];
+        pmgmem->player0[j] = dino1[j];
     }
 
     for (j = oy; j < oy + 20; j++) {
@@ -147,9 +146,13 @@ int game() {
         pmgmem2->player0[j + y - 30] = dino1[j];
     }
 
+    sprite=pmgmem->player0;
+    sprite2=pmgmem->player1;
+
     while (1) {
         oy = y;
-
+        down(sprite, 10);
+        down(sprite2, 1);
         if (OS.ch == 0x21) {
             OS.ch = 0xff;
             y -= 3;
@@ -171,6 +174,7 @@ int game() {
         }
         y += yv / 10;
 
+
         x1 -= 1;
         x2 -= 1;
         x3 -= 1;
@@ -187,11 +191,13 @@ int game() {
             x3 = 160;
         }
 
-        temppm=curpm;
-        curpm=backpm;
-        backpm=temppm;
-        ANTIC.pmbase = (unsigned char)((((unsigned int)curpm) >> 8) & 0xff);
-
+        /*
+                temppm=curpm;
+                curpm=backpm;
+                backpm=temppm;
+                ANTIC.pmbase = (unsigned char)((((unsigned int)curpm) >> 8) &
+           0xff);
+        */
         /*
         GTIA_WRITE.hposp1 = x1;
         GTIA_WRITE.hposp2 = x2;

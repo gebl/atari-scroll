@@ -4,7 +4,8 @@
     "toolkit": "cc65",
     "sources": [
         "main.c",
-        "scrl.asm"
+        "scrl.s",
+        "asmsprite.s"
     ],
     "build": "debug",
     "definitions": [],

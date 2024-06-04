@@ -22,7 +22,7 @@ unsigned char scrlc=0;
 
 
 unsigned char *dinoptr;
-unsigned int y,oy;
+unsigned char y,oy;
 
 unsigned char *curpm, *backpm, *temppm;
 

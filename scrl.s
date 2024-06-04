@@ -6,14 +6,18 @@
 .import _mapstrt
 .import _scrlc
 .import _scrlh
+.import _curpm
+.import _backpm
 
-_scrl:
+ bar:    .word   0
+
+_scrl: ; initialize the scroll vbi, called from C
     lda #7; deferref vbank routine
     sta _scrlh; handy to initialize scrlh also :-)
     ldx #>scrli ; arguments for address of VBI
     ldy #<scrli
     jmp SETVBV ; OS register VBlank
-scrli:
+scrli: ; VBI routine
     pha
     txa
     pha
@@ -22,7 +26,14 @@ scrlit:
     dex
     stx HSCROL
     stx _scrlh
-    bpl out
+    bpl out ; if positive, let the antic do the scrolling, otherwise update the map location
+    ; Swap PMBase buffers
+    ldx _curpm+1 ; the high byte of the pointer
+    ldy _backpm+1 ; the high byte of the pointer
+    stx _backpm+1
+    sty _curpm+1
+    ;sty PMBASE
+    ; Reset the scroll counter
     ldx #7
     stx _scrlh
     stx HSCROL  
@@ -35,6 +46,7 @@ scrlit:
     stx _scrlc
     ldy #0
 resloop:
+    ; Reset the background
     lda _mapstrt,Y
     sta _dlist+4,X
     lda _mapstrt+1,Y
@@ -50,7 +62,7 @@ resloop:
     ldx #0
 loop2:
     ldx #30 ; skip scrolling the top of the screen.
-loop2b:
+loop2b: ; move screen pointers in DLIST
     lda _dlist+4,X
     clc
     adc #2
