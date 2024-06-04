@@ -43,8 +43,12 @@ diloop:
     dey
     dey
     bne diloop
-    txa
+    
+    lda (ptr1),y
     iny
+    sta (ptr1),y
+    dey
+    txa
     sta (ptr1),y
     ldx foo
     dex
