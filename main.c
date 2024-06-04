@@ -143,16 +143,16 @@ int game() {
         pmgmem2->player0[j] = 0x00;
     }
     for (j = 0; j < 20; j++) {
-        pmgmem2->player0[j + y - 30] = dino1[j];
+        pmgmem2->player0[j] = dino1[j];
     }
 
     sprite=pmgmem->player0;
     sprite2=pmgmem->player1;
 
+    down(sprite, GROUND);
     while (1) {
         oy = y;
-        down(sprite, 10);
-        down(sprite2, 1);
+
         if (OS.ch == 0x21) {
             OS.ch = 0xff;
             y -= 3;
