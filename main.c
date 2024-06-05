@@ -4,11 +4,12 @@
 #include <peekpoke.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
+#include "asmsprite.h"
 #include "game.h"
 #include "pmbase.h"
 #include "scrl.h"
-#include "asmsprite.h"
 
 void updateDL() {
     int i;
@@ -17,7 +18,13 @@ void updateDL() {
     dlist[dl++] = DL_BLK8;
     dlist[dl++] = DL_BLK8;
     dlist[dl++] = DL_BLK8;
-    for (i = 0; i < 23; i++) {
+
+    dlist[dl++] = DL_LMS(DL_CHR40x8x1);
+    mapstrt[0] = dlist[dl++] = ((unsigned int)map ) & 0xff;
+    mapstrt[1] = dlist[dl++] = mapstrt[2 + 1] =
+        ((unsigned int)map) >> 8 & 0xff;
+
+    for (i = 1; i < 23; i++) {
         dlist[dl++] = DL_HSCROL(DL_LMS(DL_CHR40x8x1));
         mapstrt[i * 2] = dlist[dl++] = ((unsigned int)map + i * MAPCOLS) & 0xff;
         mapstrt[i * 2 + 1] = dlist[dl++] = mapstrt[i * 2 + 1] =
@@ -49,27 +56,123 @@ void initPM(struct __double_pmgmem *pm) {
 
     for (j = 0; j < 8; j++) {
         pm->player1[j + GROUND + 12] = barrel1[j];
-    }
-
-    for (j = 0; j < 8; j++) {
         pm->player2[j + GROUND + 12] = barrel1[j];
-    }
-
-    for (j = 0; j < 8; j++) {
         pm->player3[j + GROUND + 12] = barrel1[j];
     }
 }
 
-int game() {
-    int score, x1, x2, x3;
-    unsigned char lastjump, lives;
-    int yv = 0;
-    unsigned int j;
-    void *sprite,*sprite2;
+void showLives(char l) {
+    char c;
+    for (c=0; c<LIVES; c++) {
+        if (l>0) {
+            map[15+c] = 0x3;
+            l--;
+        } else {
+            map[15+c] = 0x7;
+        }
+    }
+}
 
-    lives = 3;
-    lastjump = 0;
+int game() {
+    int score;
+    unsigned char lives;
+    int yv = 0, m;
+
+    lives = LIVES;
     score = 0;
+    x1v = 1;
+    x2v = 1;
+    x3v = 1;
+
+    OS.ch = 0xff;
+    x1v = 1;
+    x2v = 0;
+    x3v = 0;
+
+    scrl();
+    while (lives > 0) {
+        score++;
+        x1v = x1v || (rand() % 2);
+        x2v = x2v || (rand() % 5);
+        x3v = x3v || (rand() % 10);
+        oy = y;
+
+        if (OS.ch == 0x21) {
+            OS.ch = 0xff;
+            yv += -40;
+        }
+        yv += 1;
+
+        y += yv / 10;
+
+        if (y < 10) {
+            y = 10;
+        }
+
+        if (y > GROUND) {
+            y = GROUND;
+            yv = 0;
+        }
+
+        m = y - oy;
+
+        if (m < 0) {
+            up(pmgmem->player0, abs(m));
+            up(pmgmem2->player0, abs(m));
+        } else if (m > 0) {
+            down(pmgmem->player0, m);
+            down(pmgmem2->player0, m);
+        }
+        if (x1v == 1 && x1 > DINOX - 5 && x1 < DINOX + 5 && y > JUMPCLEAR) {
+            x1v = 0;
+            x1 = DINOX - 10;
+            lives--;
+        }
+        if (x2v == 1 && x2 > DINOX - 5 && x2 < DINOX + 5 && y > JUMPCLEAR) {
+            x2v = 0;
+            x2 = DINOX - 10;
+            lives--;
+        }
+        if (x3v == 1 && x3 > DINOX - 5 && x3 < DINOX + 5 && y > JUMPCLEAR) {
+            x3v = 0;
+            x3 = DINOX - 10;
+            lives--;
+        }
+        showLives(lives);
+    }
+    return score;
+}
+
+int main() {
+    char j;
+    int origdl;
+
+    curpm = (unsigned char *)&pmgmembuf;
+    backpm = (unsigned char *)&pmgmembuf2;
+
+    ANTIC.pmbase = (unsigned char)((((unsigned int)curpm) >> 8) & 0xff);
+    pmgmem = (struct __double_pmgmem *)curpm;
+    pmgmem2 = (struct __double_pmgmem *)backpm;
+
+    OS.chbas = (unsigned char)((unsigned int)CHARSET / 256 & 0xff);
+
+    initPM(pmgmem);
+    initPM(pmgmem2);
+    initPat();
+    printf("Initializing display list...\n");
+    printf("OS.sdlst: %x\n", OS.sdlst);
+    printf("DL: %x\n", dlist);
+    while(OS.ch == 0xff) {
+    }
+    OS.ch = 0xff;
+    origdl = OS.sdlst;
+
+    OS.gprior = PRIOR_P03_PF03;
+
+    GTIA_WRITE.sizep0 = PMG_SIZE_DOUBLE;
+    GTIA_WRITE.sizep1 = PMG_SIZE_NORMAL;
+    GTIA_WRITE.sizep2 = PMG_SIZE_NORMAL;
+    GTIA_WRITE.sizep3 = PMG_SIZE_NORMAL;
 
     OS.sdmctl = 46;
     OS.sdmctl = DMACTL_PLAYFIELD_NORMAL | DMACTL_DMA_MISSILES |
@@ -80,154 +183,32 @@ int game() {
     OS.pcolr2 = COLOR_BLUE;
     OS.pcolr3 = COLOR_YELLOW;
 
-    curpm = (unsigned char *)&pmgmembuf;
-    backpm = (unsigned char *)&pmgmembuf2;
-
-    printf("pmbase: %x\n", (curpm));
-    printf("pmbase2: %x\n", (backpm));
-
-    printf("Chargent start: %x\n", _CHARGEN_START__);
-    printf("Main start: %x\n", _MAIN_START__);
-    printf("CHARSET: %x\n", CHARSET);
-    printf("----------\n");
-    printf("high pmbase: %x\n", (((unsigned int)curpm) >> 8) & 0xff);
-    printf("sizeof pmgmem: %x\n", sizeof(struct __double_pmgmem));
-    printf("pmbase+sizeof pmgmem: %x\n",
-           (unsigned char *)curpm + sizeof(struct __double_pmgmem));
-
-    ANTIC.pmbase = (unsigned char)((((unsigned int)curpm) >> 8) & 0xff);
-    pmgmem = (struct __double_pmgmem *)curpm;
-    pmgmem2 = (struct __double_pmgmem *)backpm;
-
-    printf("pmgmem: %x\n", pmgmem);
-    printf("pmgmem2: %x\n", pmgmem2);
-    printf("pmgmem->player0: %x\n", pmgmem->player0);
-    printf("pmgmem2->player0: %x\n", pmgmem2->player0);
-
-    while (OS.ch == 0xff) {
-    }
-    OS.ch = 0xff;
-
-    oy = y = GROUND;
-    OS.chbas = (unsigned char)((unsigned int)CHARSET / 256 & 0xff);
-
-    initPM(pmgmem);
-    initPM(pmgmem2);
-    initPat();
-
-    dinoptr = pmgmem->player0 + y;
-    yv = -35;
-
-    updateDL();
-    scrl();
-
-    // OS.gprior = PRIOR_P03_PF03|PRIOR_GFX_MODE_11;
-    OS.gprior = PRIOR_P03_PF03;
-    GTIA_WRITE.gractl = GRACTL_PLAYERS;
-
-    GTIA_WRITE.sizep0 = PMG_SIZE_DOUBLE;
-    GTIA_WRITE.sizep1 = PMG_SIZE_NORMAL;
-    GTIA_WRITE.sizep2 = PMG_SIZE_NORMAL;
-    GTIA_WRITE.sizep3 = PMG_SIZE_NORMAL;
-
-    GTIA_WRITE.hposp0 = 115;
-    GTIA_WRITE.hposp1 = x1 = 160;
-    GTIA_WRITE.hposp2 = x2 = 150;
-    GTIA_WRITE.hposp3 = x3 = 140;
+    GTIA_WRITE.hposp0 = DINOX;
 
     for (j = 0; j < 20; j++) {
         pmgmem->player0[j] = dino1[j];
     }
 
-    for (j = oy; j < oy + 20; j++) {
-        pmgmem2->player0[j] = 0x00;
-    }
     for (j = 0; j < 20; j++) {
-        pmgmem2->player0[j] = dino1[j];
+        pmgmem2->player0[j] = dino2[j];
     }
 
-    sprite=pmgmem->player0;
-    sprite2=pmgmem->player1;
-
-    down(sprite, GROUND);
-    while (1) {
-        oy = y;
-
-        if (OS.ch == 0x21) {
-            OS.ch = 0xff;
-            y -= 3;
-        }
-
-        if (y < 5) {
-            y = 5;
-        }
-
-        if (yv < 0) {
-            yv++;
-        }
-
-        if (y > GROUND) {
-            y = GROUND;
-            yv = 0;
-        } else {
-            yv++;
-        }
-        y += yv / 10;
-
-
-        x1 -= 1;
-        x2 -= 1;
-        x3 -= 1;
-
-        if (x1 < 0) {
-            x1 = 160;
-        }
-
-        if (x2 < 0) {
-            x2 = 160;
-        }
-
-        if (x3 < 0) {
-            x3 = 160;
-        }
-
-        /*
-                temppm=curpm;
-                curpm=backpm;
-                backpm=temppm;
-                ANTIC.pmbase = (unsigned char)((((unsigned int)curpm) >> 8) &
-           0xff);
-        */
-        /*
-        GTIA_WRITE.hposp1 = x1;
-        GTIA_WRITE.hposp2 = x2;
-        GTIA_WRITE.hposp3 = x3;
-        */
-    }
-    return score;
-}
-
-int main() {
-    /*
-         unsigned int i = PEEK(RAMTOP) - 9;
-     printf("%x\n", i*256);
-     unsigned int j = i * 256 + 1024;
-     printf("%x\n", j);
-     while (1) {}
-
-
-
-         unsigned char *dl = (unsigned char *)(PEEK(560) + PEEK(561) * 256);
-         for (int i = 0; i < 31; i++) {
-             char v = PEEK(dl + i);
-             printf("%d\n", v);
-         }
-     */
-    printf("Hello, world!\n");
-    while (OS.ch == 0xff) {
-    }
-    OS.ch = 0xff;
+    down(pmgmem->player0, GROUND);
+    down(pmgmem2->player0, GROUND);
+    y = GROUND;
     printf("Starting game...\n");
-
-    printf("Score: %d\n", game());
+    
+    while (1) {
+        updateDL();
+        GTIA_WRITE.hposp1 = x1 = rand() % 110;
+        GTIA_WRITE.hposp2 = x2 = rand() % 110;
+        GTIA_WRITE.hposp3 = x3 = rand() % 110;
+        GTIA_WRITE.gractl = GRACTL_PLAYERS;
+        printf("Score: %d\n",game());
+        GTIA_WRITE.gractl = 0;
+        OS.sdlst = origdl;
+        while (OS.ch == 0xff) {
+        }
+        OS.ch = 0xff;
+    }
 }

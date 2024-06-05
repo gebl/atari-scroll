@@ -1,12 +1,11 @@
 #ifndef _MAIN_H
 #define _MAIN_H
 
-extern unsigned int _CHARGEN_START__;
-extern unsigned int _PM_START__;
-extern unsigned int _MAIN_START__;
-
 #define CHARSET (unsigned char *)0xE000
 #define GROUND 60
+#define DINOX 115
+#define JUMPCLEAR 53
+#define LIVES 3
 
 
 //https://www.atariarchives.org/creativeatari/PlayerMissile_Graphics.php
@@ -22,7 +21,7 @@ unsigned char scrlc=0;
 
 
 unsigned char *dinoptr;
-unsigned char y,oy;
+unsigned char y=0,oy=0;
 
 unsigned char *curpm, *backpm, *temppm;
 

@@ -6,8 +6,8 @@
 .import _mapstrt
 .import _scrlc
 .import _scrlh
-.import _curpm
-.import _backpm
+.import _swap
+.import _decBarrels
 
  bar:    .word   0
 
@@ -22,26 +22,22 @@ scrli: ; VBI routine
     txa
     pha
 scrlit:
+    jsr _decBarrels
     ldx _scrlh
     dex
     stx HSCROL
     stx _scrlh
     bpl out ; if positive, let the antic do the scrolling, otherwise update the map location
-    ; Swap PMBase buffers
-    ldx _curpm+1 ; the high byte of the pointer
-    ldy _backpm+1 ; the high byte of the pointer
-    stx _backpm+1
-    sty _curpm+1
-    ;sty PMBASE
+    jsr _swap
     ; Reset the scroll counter
     ldx #7
     stx _scrlh
-    stx HSCROL  
+    stx HSCROL
     ldx #0
     ldy _scrlc
     iny
     sty _scrlc
-    cpy #50
+    cpy #40
     bcc loop2
     stx _scrlc
     ldy #0
