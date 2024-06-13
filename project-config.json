@@ -19,6 +19,7 @@
     "output": "atari-scroll.xex",
     "debugger": "atari800",
     "linkerFlags": [
-        "--config", "C:\\Users\\gabe.ropnop\\OneDrive\\Desktop\\atari-scroll\\atarixl-mod.cfg"
+        "--config", "C:\\Users\\gabe.ropnop\\OneDrive\\Desktop\\atari-scroll\\atarixl-mod.cfg",
+        "-m", "atari-scroll.map"
     ]
 }
