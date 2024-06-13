@@ -1,4 +1,4 @@
-#include "main.h"
+#include "main.h" 
 
 #include <atari.h>
 #include <peekpoke.h>
@@ -77,6 +77,7 @@ int game() {
     int score;
     unsigned char lives;
     int yv = 0, m;
+    char lastjump =0;
 
     lives = LIVES;
     score = 0;
@@ -97,9 +98,10 @@ int game() {
         x3v = x3v || (rand() % 10);
         oy = y;
 
-        if (OS.ch == 0x21) {
+        if (OS.ch == 0x21 && lastjump < 4) {
             OS.ch = 0xff;
             yv += -40;
+            lastjump++;
         }
         yv += 1;
 
@@ -112,6 +114,7 @@ int game() {
         if (y > GROUND) {
             y = GROUND;
             yv = 0;
+            lastjump = 0;
         }
 
         m = y - oy;
