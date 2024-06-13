@@ -1,4 +1,4 @@
-#include "main.h" 
+#include "main.h"
 
 #include <atari.h>
 #include <peekpoke.h>
@@ -20,9 +20,8 @@ void updateDL() {
     dlist[dl++] = DL_BLK8;
 
     dlist[dl++] = DL_LMS(DL_CHR40x8x1);
-    mapstrt[0] = dlist[dl++] = ((unsigned int)map ) & 0xff;
-    mapstrt[1] = dlist[dl++] = mapstrt[2 + 1] =
-        ((unsigned int)map) >> 8 & 0xff;
+    mapstrt[0] = dlist[dl++] = ((unsigned int)map) & 0xff;
+    mapstrt[1] = dlist[dl++] = mapstrt[2 + 1] = ((unsigned int)map) >> 8 & 0xff;
 
     for (i = 1; i < 23; i++) {
         dlist[dl++] = DL_HSCROL(DL_LMS(DL_CHR40x8x1));
@@ -63,12 +62,12 @@ void initPM(struct __double_pmgmem *pm) {
 
 void showLives(char l) {
     char c;
-    for (c=0; c<LIVES; c++) {
-        if (l>0) {
-            map[15+c] = 0x3;
+    for (c = 0; c < LIVES; c++) {
+        if (l > 0) {
+            map[15 + c] = 0x3;
             l--;
         } else {
-            map[15+c] = 0x7;
+            map[15 + c] = 0x7;
         }
     }
 }
@@ -77,7 +76,7 @@ int game() {
     int score;
     unsigned char lives;
     int yv = 0, m;
-    char lastjump =0;
+    char lastjump = 0;
 
     lives = LIVES;
     score = 0;
@@ -126,15 +125,23 @@ int game() {
             down(pmgmem->player0, m);
             down(pmgmem2->player0, m);
         }
-        if (x1v == 1 && x1 > DINOX - 5 && x1 < DINOX + 5 && y > JUMPCLEAR) {
-            x1v = 0;
-            x1 = DINOX - 10;
-            lives--;
+        if (x1v == 1 && x1 > DINOX - 5 && x1 < DINOX + 5) {
+            if (y > JUMPCLEAR) {
+                x1v = 0;
+                x1 = DINOX - 10;
+                lives--;
+            } else {
+                score += 1000;
+            }
         }
-        if (x2v == 1 && x2 > DINOX - 5 && x2 < DINOX + 5 && y > JUMPCLEAR) {
-            x2v = 0;
-            x2 = DINOX - 10;
-            lives--;
+        if (x2v == 1 && x2 > DINOX - 5 && x2 < DINOX + 5) {
+            if (y> JUMPCLEAR) {
+                x2v = 0;
+                x2 = DINOX - 10;
+                lives--;
+            } else {
+                score += 1000;
+            }
         }
         if (x3v == 1 && x3 > DINOX - 5 && x3 < DINOX + 5 && y > JUMPCLEAR) {
             x3v = 0;
@@ -162,10 +169,10 @@ int main() {
     initPM(pmgmem);
     initPM(pmgmem2);
     initPat();
-    printf("Initializing display list...\n");
-    printf("OS.sdlst: %x\n", OS.sdlst);
-    printf("DL: %x\n", dlist);
-    while(OS.ch == 0xff) {
+    printf("Dino Run\n");
+    printf("Press space to jump\n");
+    printf("Avoid the barrels\n");
+    while (OS.ch == 0xff) {
     }
     OS.ch = 0xff;
     origdl = OS.sdlst;
@@ -200,14 +207,14 @@ int main() {
     down(pmgmem2->player0, GROUND);
     y = GROUND;
     printf("Starting game...\n");
-    
+
     while (1) {
         updateDL();
         GTIA_WRITE.hposp1 = x1 = rand() % 110;
         GTIA_WRITE.hposp2 = x2 = rand() % 110;
         GTIA_WRITE.hposp3 = x3 = rand() % 110;
         GTIA_WRITE.gractl = GRACTL_PLAYERS;
-        printf("Score: %d\n",game());
+        printf("Score: %d\n", game());
         GTIA_WRITE.gractl = 0;
         OS.sdlst = origdl;
         while (OS.ch == 0xff) {
