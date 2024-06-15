@@ -74,7 +74,7 @@ void showLives(char l) {
 
 int game() {
     int score;
-    unsigned char lives;
+    char lives;
     int yv = 0, m;
     char lastjump = 0;
 
@@ -90,8 +90,7 @@ int game() {
     x3v = 0;
 
     scrl();
-    while (lives > 0) {
-        score++;
+    while (lives > 0) { 
         x1v = x1v || (rand() % 2);
         x2v = x2v || (rand() % 5);
         x3v = x3v || (rand() % 10);
@@ -131,7 +130,7 @@ int game() {
                 x1 = DINOX - 10;
                 lives--;
             } else {
-                score += 1000;
+                score += 10;
             }
         }
         if (x2v == 1 && x2 > DINOX - 5 && x2 < DINOX + 5) {
@@ -140,13 +139,16 @@ int game() {
                 x2 = DINOX - 10;
                 lives--;
             } else {
-                score += 1000;
+                score += 10;
             }
         }
-        if (x3v == 1 && x3 > DINOX - 5 && x3 < DINOX + 5 && y > JUMPCLEAR) {
-            x3v = 0;
-            x3 = DINOX - 10;
-            lives--;
+        if (x3v == 1 && x3 > DINOX - 5 && x3 < DINOX + 5) {
+            if (y > JUMPCLEAR) {
+                x3 = DINOX - 10;
+                lives--;
+            } else {
+                score += 10;
+            }
         }
         showLives(lives);
     }
